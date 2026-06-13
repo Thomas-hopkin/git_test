@@ -13,10 +13,11 @@ plugins {
 dependencyResolutionManagement {
     includeBuild("build-logic")
     repositories {
-        mavenLocal()
+        maven {
+            url = uri("${rootDir}/local-repo")
+        }
         gradlePluginPortal()
         mavenCentral()
-        maven("https://repo.openrs2.org/repository/openrs2-snapshots")
     }
 }
 
