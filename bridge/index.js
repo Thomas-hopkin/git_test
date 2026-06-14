@@ -77,6 +77,16 @@ app.post('/withdraw', auth, async (req, res) => {
   }
 });
 
+const DAILY_RUNE = 10;
+
+// Award daily login RUNE — called on player login
+app.post('/daily-claim', auth, (req, res) => {
+  const { username } = req.body;
+  if (!username) return res.status(400).json({ error: 'Missing username' });
+  const result = db.dailyClaim(username, DAILY_RUNE);
+  res.json(result);
+});
+
 app.listen(PORT, () => {
   console.log(`Solana bridge running on port ${PORT}`);
   console.log(`Token mint: ${process.env.TOKEN_MINT_ADDRESS || '(not set — configure TOKEN_MINT_ADDRESS)'}`);

@@ -23,6 +23,11 @@ db.exec(`
     signature TEXT,
     created_at INTEGER NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS daily_claims (
+    username TEXT PRIMARY KEY,
+    last_claim_date TEXT NOT NULL
+  );
 `);
 
 module.exports = {
@@ -60,5 +65,22 @@ module.exports = {
 
   logWithdrawal(username, amount, signature) {
     db.prepare('INSERT INTO transactions (username, type, amount, signature, created_at) VALUES (?, ?, ?, ?, ?)').run(username.toLowerCase(), 'withdraw', amount, signature, Date.now());
+  },
+
+  // Returns { claimed: true, amount } on first claim today, or { claimed: false, next_reset } if already claimed.
+  dailyClaim(username, amount) {
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const row = db.prepare('SELECT last_claim_date FROM daily_claims WHERE username = ?').get(username.toLowerCase());
+    if (row && row.last_claim_date === today) {
+      const tomorrow = new Date();
+      tomorrow.setUTCHours(24, 0, 0, 0);
+      return { claimed: false, next_reset: tomorrow.toISOString() };
+    }
+    db.prepare(`
+      INSERT INTO daily_claims (username, last_claim_date) VALUES (?, ?)
+      ON CONFLICT(username) DO UPDATE SET last_claim_date = excluded.last_claim_date
+    `).run(username.toLowerCase(), today);
+    this.credit(username, amount);
+    return { claimed: true, amount };
   },
 };
