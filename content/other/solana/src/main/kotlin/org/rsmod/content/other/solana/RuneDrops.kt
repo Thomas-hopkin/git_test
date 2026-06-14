@@ -71,7 +71,7 @@ class RuneDrops @Inject constructor(
     }
 }
 
-private fun creditRune(player: Player, amount: Int) {
+internal fun creditRune(player: Player, amount: Int) {
     val body = json.writeValueAsString(
         mapOf("username" to player.username, "amount" to amount)
     ).toRequestBody(JSON)
