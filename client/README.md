@@ -31,10 +31,17 @@ Start the **game server** (`gradlew run`, port 43594) and the **bridge** (`node 
 port 4567), then from the repo root:
 
 ```sh
-gradlew -p client run --args="client/osrs-233.jar"
+gradlew -p client run
 ```
 
-(Use the full path to wherever you saved the jar.)
+This looks for `osrs-233.jar` in the `client/` directory by default. To use a jar elsewhere,
+pass an absolute path: `gradlew -p client run --args="C:/path/to/osrs-233.jar"`.
+
+> On Windows, Gradle must run on JDK 17+ even though the client itself uses JDK 11. If you
+> see "Gradle requires JVM 17 or later", point this shell at your JDK 21 first:
+> ```
+> for /d %i in ("C:\Program Files\Eclipse Adoptium\jdk-21*") do @set "JAVA_HOME=%i"
+> ```
 
 ## Connecting
 
