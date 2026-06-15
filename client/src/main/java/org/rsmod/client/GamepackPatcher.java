@@ -5,10 +5,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 
 import org.objectweb.asm.ClassReader;
@@ -20,71 +24,118 @@ import org.objectweb.asm.Opcodes;
 /**
  * Rewrites the official OSRS gamepack so it talks to an RSMod server instead of Jagex.
  *
- * <p>The login handshake is RSA-encrypted with a modulus that is hard-coded into the
- * gamepack as a long hexadecimal string constant. Only Jagex holds the private key for
- * their modulus, so the client must be re-pointed at the server's own public modulus
- * (RSMod exports this during installation). We locate every sufficiently long hex string
- * constant in the bytecode and replace it with the server modulus.
+ * <p>Two things have to happen:
+ * <ol>
+ *   <li>The gamepack is a <b>signed</b> jar. Modifying any class invalidates the signature,
+ *       so the signing artifacts (META-INF/*.SF, *.RSA, *.DSA, *.EC) and the per-entry
+ *       manifest digests are stripped; otherwise the JVM throws a SHA-256 digest error.</li>
+ *   <li>The login handshake is RSA-encrypted with a modulus hard-coded into the gamepack as
+ *       a long hex string. Only Jagex holds the private key for theirs, so it is replaced
+ *       with the server's own public modulus. The login modulus is the <b>longest</b> hex
+ *       constant in the client (a 1024-bit modulus dwarfs the elliptic-curve params), so we
+ *       target that one and log every candidate for verification.</li>
+ * </ol>
  */
 public final class GamepackPatcher {
 
-    /** RSA moduli show up as long hex strings; nothing else in the client is this long. */
-    private static final Pattern HEX = Pattern.compile("[0-9a-fA-F]{96,}");
+    /** RSA moduli show up as long hex strings; the shorter ones are curve params / hashes. */
+    private static final Pattern HEX = Pattern.compile("[0-9a-fA-F]{100,}");
 
     private GamepackPatcher() {}
 
     public static File patch(File input, File output, String serverModulus) throws IOException {
-        List<String> replaced = new ArrayList<>();
-        try (JarFile jar = new JarFile(input);
-             JarOutputStream out = new JarOutputStream(new FileOutputStream(output))) {
+        // Pass 1: collect every long hex constant so we can pick (and log) the login modulus.
+        List<String> candidates = new ArrayList<>();
+        try (JarFile jar = new JarFile(input, false)) {
             Enumeration<JarEntry> entries = jar.entries();
             while (entries.hasMoreElements()) {
                 JarEntry entry = entries.nextElement();
-                byte[] data = jar.getInputStream(entry).readAllBytes();
                 if (entry.getName().endsWith(".class")) {
-                    data = patchClass(data, serverModulus, replaced);
+                    collect(jar.getInputStream(entry).readAllBytes(), candidates);
                 }
-                out.putNextEntry(new JarEntry(entry.getName()));
+            }
+        }
+        Set<String> unique = new LinkedHashSet<>(candidates);
+        String target = null;
+        System.out.println("[patcher] long hex constants found (len : prefix):");
+        for (String s : unique) {
+            System.out.println(String.format("  %4d : %s...", s.length(), s.substring(0, Math.min(48, s.length()))));
+            if (target == null || s.length() > target.length()) {
+                target = s;
+            }
+        }
+        if (target == null) {
+            System.out.println("[patcher] WARNING: no modulus-like constant found.");
+        } else {
+            System.out.println("[patcher] -> replacing LONGEST (" + target.length()
+                + " chars) with server modulus (" + serverModulus.length() + " chars).");
+        }
+
+        // Pass 2: rewrite, dropping signing artifacts and swapping the target constant.
+        Manifest manifest = new Manifest();
+        manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+        try (JarFile jar = new JarFile(input, false);
+             JarOutputStream out = new JarOutputStream(new FileOutputStream(output), manifest)) {
+            Enumeration<JarEntry> entries = jar.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                String name = entry.getName();
+                if (isSigningArtifact(name)) {
+                    continue;
+                }
+                byte[] data = jar.getInputStream(entry).readAllBytes();
+                if (name.endsWith(".class") && target != null) {
+                    data = replace(data, target, serverModulus);
+                }
+                out.putNextEntry(new JarEntry(name));
                 out.write(data);
                 out.closeEntry();
             }
         }
-        System.out.println("[patcher] replaced " + replaced.size() + " hex constant(s) with the server modulus:");
-        for (String s : replaced) {
-            String preview = s.substring(0, Math.min(20, s.length()));
-            System.out.println("  - " + preview + "... (" + s.length() + " hex chars)");
-        }
-        if (replaced.isEmpty()) {
-            System.out.println("[patcher] WARNING: no modulus constant found — the gamepack may not be a clean OSRS jar.");
-        }
         return output;
     }
 
-    private static byte[] patchClass(byte[] data, String serverModulus, List<String> replaced) {
-        ClassReader reader = new ClassReader(data);
-        ClassWriter writer = new ClassWriter(0);
-        ClassVisitor visitor = new ClassVisitor(Opcodes.ASM9, writer) {
+    private static boolean isSigningArtifact(String name) {
+        if (name.equalsIgnoreCase("META-INF/MANIFEST.MF")) {
+            return true;
+        }
+        String upper = name.toUpperCase();
+        return upper.startsWith("META-INF/")
+            && (upper.endsWith(".SF") || upper.endsWith(".RSA")
+                || upper.endsWith(".DSA") || upper.endsWith(".EC"));
+    }
+
+    private static void collect(byte[] data, List<String> out) {
+        new ClassReader(data).accept(new ClassVisitor(Opcodes.ASM9) {
             @Override
-            public MethodVisitor visitMethod(int access, String name, String descriptor,
-                                             String signature, String[] exceptions) {
-                MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
-                return new MethodVisitor(Opcodes.ASM9, mv) {
+            public MethodVisitor visitMethod(int a, String n, String d, String s, String[] e) {
+                return new MethodVisitor(Opcodes.ASM9) {
                     @Override
                     public void visitLdcInsn(Object value) {
-                        if (value instanceof String) {
-                            String s = (String) value;
-                            if (HEX.matcher(s).matches()) {
-                                replaced.add(s);
-                                super.visitLdcInsn(serverModulus);
-                                return;
-                            }
+                        if (value instanceof String && HEX.matcher((String) value).matches()) {
+                            out.add((String) value);
                         }
-                        super.visitLdcInsn(value);
                     }
                 };
             }
-        };
-        reader.accept(visitor, 0);
+        }, 0);
+    }
+
+    private static byte[] replace(byte[] data, String from, String to) {
+        ClassReader reader = new ClassReader(data);
+        ClassWriter writer = new ClassWriter(0);
+        reader.accept(new ClassVisitor(Opcodes.ASM9, writer) {
+            @Override
+            public MethodVisitor visitMethod(int a, String n, String d, String s, String[] e) {
+                MethodVisitor mv = super.visitMethod(a, n, d, s, e);
+                return new MethodVisitor(Opcodes.ASM9, mv) {
+                    @Override
+                    public void visitLdcInsn(Object value) {
+                        super.visitLdcInsn(from.equals(value) ? to : value);
+                    }
+                };
+            }
+        }, 0);
         return writer.toByteArray();
     }
 }
