@@ -87,6 +87,55 @@ app.post('/daily-claim', auth, (req, res) => {
   res.json(result);
 });
 
+const RSA_MODULUS = process.env.RSA_MODULUS || 'bd7bc24d6bbcf0de2525fc75678fc47e89d1173919ff5cda37ff99dca5f7054804cc90c6166e23021f10d2da939f60432675ca46edf44a8dee0c6d59ddd747405f40280ea21b63eb5bd3d31497ea219bec171918374f2915ddf0958341b6ef7fdb00453183';
+const GAME_PORT = process.env.GAME_PORT || 43594;
+const SERVER_HOST = process.env.SERVER_HOST || '127.0.0.1';
+
+// RSProx proxy target config — import this YAML file into RSProx
+app.get('/proxy-targets.yaml', (req, res) => {
+  res.type('text/plain').send(
+    `config:\n` +
+    `  - name: RSMod PvP\n` +
+    `    jav_config_url: http://${SERVER_HOST}:${PORT}/jav_config.ws\n` +
+    `    modulus: ${RSA_MODULUS}\n` +
+    `    revision: 233\n` +
+    `    game_server_port: ${GAME_PORT}\n`
+  );
+});
+
+// OSRS client configuration served to RSProx
+app.get('/jav_config.ws', (req, res) => {
+  res.type('text/plain').send(
+    `title=RSMod PvP\n` +
+    `advertised=0\n` +
+    `codebase=http://${SERVER_HOST}:${GAME_PORT}/\n` +
+    `cachedir=.jagex_cache_32\n` +
+    `storebase=0\n` +
+    `objecttag=0\n` +
+    `disableworld=0\n` +
+    `viewerversion=100\n` +
+    `win_sub_version=1\n` +
+    `mac_sub_version=2\n` +
+    `otherSub_version=2\n` +
+    `lang=0\n` +
+    `free_to_play_codebase=\n` +
+    `lowdetail=0\n` +
+    `modewhere=1\n` +
+    `modeWhat=0\n` +
+    `search_rsa_exponent=10001\n` +
+    `search_rsa_modulus=${RSA_MODULUS}\n` +
+    `initial_class=client.class\n` +
+    `initial_jar=jagexappletviewer.jar\n` +
+    `browserControl=0\n` +
+    `window_preferredwidth=800\n` +
+    `window_preferredheight=600\n` +
+    `advert_height=0\n` +
+    `unsafe=0\n` +
+    `cookieid=\n` +
+    `world=1,0,${SERVER_HOST},${GAME_PORT},RSMod PvP\n`
+  );
+});
+
 app.listen(PORT, () => {
   console.log(`Solana bridge running on port ${PORT}`);
   console.log(`Token mint: ${process.env.TOKEN_MINT_ADDRESS || '(not set — configure TOKEN_MINT_ADDRESS)'}`);
