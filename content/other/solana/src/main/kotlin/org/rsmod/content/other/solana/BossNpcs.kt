@@ -18,7 +18,7 @@ object BossNpcs : NpcReferences() {
     // Tier 2 — 75 RUNE
     val kalphite_queen = find("kalphite_queen")
     val vorkath = find("vorkath")
-    val chaos_elemental = find("chaos_elemental")
+    val chaos_elemental = find("chaoselemental")
 
     // Tier 3 — 200 RUNE
     val corp_beast = find("corp_beast")
