@@ -50,3 +50,9 @@ bin/
 bridge/node_modules/
 bridge/.env
 bridge/bridge.db
+
+### RSMod client ###
+# Gamepack binaries are not redistributed; players download osrs-233.jar themselves.
+client/*.jar
+**/osrs-*.jar
+**/gamepack*.jar
