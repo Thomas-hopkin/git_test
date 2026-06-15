@@ -90,6 +90,7 @@ app.post('/daily-claim', auth, (req, res) => {
 const RSA_MODULUS = process.env.RSA_MODULUS || 'bd7bc24d6bbcf0de2525fc75678fc47e89d1173919ff5cda37ff99dca5f7054804cc90c6166e23021f10d2da939f60432675ca46edf44a8dee0c6d59ddd747405f40280ea21b63eb5bd3d31497ea219bec171918374f2915ddf0958341b6ef7fdb00453183';
 const GAME_PORT = process.env.GAME_PORT || 43594;
 const SERVER_HOST = process.env.SERVER_HOST || '127.0.0.1';
+const GAME_REVISION = process.env.GAME_REVISION || 233;
 
 // RSProx proxy target config — import this YAML file into RSProx
 app.get('/proxy-targets.yaml', (req, res) => {
@@ -107,6 +108,7 @@ app.get('/proxy-targets.yaml', (req, res) => {
 app.get('/jav_config.ws', (req, res) => {
   res.type('text/plain').send(
     `title=RSMod PvP\n` +
+    `param=25=${GAME_REVISION}\n` +
     `advertised=0\n` +
     `codebase=http://${SERVER_HOST}:${GAME_PORT}/\n` +
     `cachedir=.jagex_cache_32\n` +
