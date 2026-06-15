@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@solana/web3.js": "^1.98.0",
-    "better-sqlite3": "^9.4.3",
     "express": "^4.18.3"
   }
 }

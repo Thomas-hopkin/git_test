@@ -1,86 +1,74 @@
-const Database = require('better-sqlite3');
+const fs = require('fs');
 const path = require('path');
 
-const db = new Database(path.join(__dirname, 'bridge.db'));
+const DATA_FILE = path.join(__dirname, 'data.json');
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS wallets (
-    username TEXT PRIMARY KEY,
-    wallet_address TEXT NOT NULL,
-    linked_at INTEGER NOT NULL
-  );
+function load() {
+  if (!fs.existsSync(DATA_FILE)) {
+    return { wallets: {}, balances: {}, daily_claims: {}, transactions: [] };
+  }
+  return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+}
 
-  CREATE TABLE IF NOT EXISTS balances (
-    username TEXT PRIMARY KEY,
-    amount INTEGER NOT NULL DEFAULT 0
-  );
-
-  CREATE TABLE IF NOT EXISTS transactions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL,
-    type TEXT NOT NULL,
-    amount INTEGER NOT NULL,
-    signature TEXT,
-    created_at INTEGER NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS daily_claims (
-    username TEXT PRIMARY KEY,
-    last_claim_date TEXT NOT NULL
-  );
-`);
+function save(data) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+}
 
 module.exports = {
   linkWallet(username, address) {
-    db.prepare(`
-      INSERT INTO wallets (username, wallet_address, linked_at)
-      VALUES (?, ?, ?)
-      ON CONFLICT(username) DO UPDATE SET wallet_address = excluded.wallet_address, linked_at = excluded.linked_at
-    `).run(username.toLowerCase(), address, Date.now());
+    const data = load();
+    data.wallets[username.toLowerCase()] = address;
+    save(data);
   },
 
   getWallet(username) {
-    return db.prepare('SELECT wallet_address FROM wallets WHERE username = ?').get(username.toLowerCase());
+    const data = load();
+    const address = data.wallets[username.toLowerCase()];
+    return address ? { wallet_address: address } : null;
   },
 
   getBalance(username) {
-    const row = db.prepare('SELECT amount FROM balances WHERE username = ?').get(username.toLowerCase());
-    return row ? row.amount : 0;
+    const data = load();
+    return data.balances[username.toLowerCase()] || 0;
   },
 
   credit(username, amount) {
-    db.prepare(`
-      INSERT INTO balances (username, amount) VALUES (?, ?)
-      ON CONFLICT(username) DO UPDATE SET amount = amount + excluded.amount
-    `).run(username.toLowerCase(), amount);
-    db.prepare('INSERT INTO transactions (username, type, amount, created_at) VALUES (?, ?, ?, ?)').run(username.toLowerCase(), 'deposit', amount, Date.now());
+    const data = load();
+    const key = username.toLowerCase();
+    data.balances[key] = (data.balances[key] || 0) + amount;
+    data.transactions.push({ username: key, type: 'credit', amount, created_at: Date.now() });
+    save(data);
   },
 
   debit(username, amount) {
-    const bal = this.getBalance(username);
+    const data = load();
+    const key = username.toLowerCase();
+    const bal = data.balances[key] || 0;
     if (bal < amount) return false;
-    db.prepare('UPDATE balances SET amount = amount - ? WHERE username = ?').run(amount, username.toLowerCase());
+    data.balances[key] = bal - amount;
+    save(data);
     return true;
   },
 
   logWithdrawal(username, amount, signature) {
-    db.prepare('INSERT INTO transactions (username, type, amount, signature, created_at) VALUES (?, ?, ?, ?, ?)').run(username.toLowerCase(), 'withdraw', amount, signature, Date.now());
+    const data = load();
+    data.transactions.push({ username: username.toLowerCase(), type: 'withdraw', amount, signature, created_at: Date.now() });
+    save(data);
   },
 
-  // Returns { claimed: true, amount } on first claim today, or { claimed: false, next_reset } if already claimed.
   dailyClaim(username, amount) {
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    const row = db.prepare('SELECT last_claim_date FROM daily_claims WHERE username = ?').get(username.toLowerCase());
-    if (row && row.last_claim_date === today) {
+    const today = new Date().toISOString().slice(0, 10);
+    const data = load();
+    const key = username.toLowerCase();
+    if (data.daily_claims[key] === today) {
       const tomorrow = new Date();
       tomorrow.setUTCHours(24, 0, 0, 0);
       return { claimed: false, next_reset: tomorrow.toISOString() };
     }
-    db.prepare(`
-      INSERT INTO daily_claims (username, last_claim_date) VALUES (?, ?)
-      ON CONFLICT(username) DO UPDATE SET last_claim_date = excluded.last_claim_date
-    `).run(username.toLowerCase(), today);
-    this.credit(username, amount);
+    data.daily_claims[key] = today;
+    data.balances[key] = (data.balances[key] || 0) + amount;
+    data.transactions.push({ username: key, type: 'daily', amount, created_at: Date.now() });
+    save(data);
     return { claimed: true, amount };
   },
 };
