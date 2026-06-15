@@ -139,6 +139,30 @@ app.get('/jav_config.ws', (req, res) => {
   );
 });
 
+// OSRS binary world list — RSProx downloads this from param=17 in jav_config.ws
+// Format: [payloadSize:4][worldCount:2]([id:2][props:4][host:str0][activity:str0][loc:1][pop:2])*
+// Strings are NUL-terminated (0x00). All ints big-endian.
+app.get('/worldlist.ws', (req, res) => {
+  const hostStr = Buffer.from(SERVER_HOST + '\0', 'latin1');
+  const activityStr = Buffer.from('RSMod PvP\0', 'latin1');
+
+  const perWorldSize = 2 + 4 + hostStr.length + activityStr.length + 1 + 2;
+  const payloadSize = 2 + perWorldSize; // world count + one world
+  const buf = Buffer.alloc(4 + payloadSize);
+  let off = 0;
+
+  buf.writeUInt32BE(payloadSize, off); off += 4;
+  buf.writeUInt16BE(1, off); off += 2;           // 1 world
+  buf.writeUInt16BE(1, off); off += 2;           // world id = 1
+  buf.writeUInt32BE(0, off); off += 4;           // properties (free, no flags)
+  hostStr.copy(buf, off); off += hostStr.length;
+  activityStr.copy(buf, off); off += activityStr.length;
+  buf.writeUInt8(0, off); off += 1;              // location
+  buf.writeInt16BE(1, off); off += 2;            // population
+
+  res.type('application/octet-stream').send(buf);
+});
+
 app.listen(PORT, () => {
   console.log(`Solana bridge running on port ${PORT}`);
   console.log(`Token mint: ${process.env.TOKEN_MINT_ADDRESS || '(not set — configure TOKEN_MINT_ADDRESS)'}`);
