@@ -111,7 +111,7 @@ app.get('/jav_config.ws', (req, res) => {
     `param=25=${GAME_REVISION}\n` +
     `param=17=http://${SERVER_HOST}:${PORT}/worldlist.ws\n` +
     `advertised=0\n` +
-    `codebase=http://${SERVER_HOST}:${GAME_PORT}/\n` +
+    `codebase=http://${SERVER_HOST}/\n` +
     `cachedir=.jagex_cache_32\n` +
     `storebase=0\n` +
     `objecttag=0\n` +
