@@ -26,9 +26,9 @@ public final class Launcher {
     // --- RSMod server connection (edit these for a public server later) -------------------
     /** RSMod's RSA modulus, exported during server installation. Must match the server. */
     static final String RSA_MODULUS =
-        "bd7bc24d6bbcf0de2525fc75678fc47e89d1173919ff5cda37ff99dca5f7054804cc90c6166e23021f10"
-        + "d2da939f60432675ca46edf44a8dee0c6d59ddd747405f40280ea21b63eb5bd3d31497ea219bec171918"
-        + "374f2915ddf0958341b6ef7fdb00453183";
+        "bd7bc24d6bbcf0de2525fc75678fc47e89d1173919ff5cda37ff99dca5f7054804cc90c6166e23021f10d2da939f60432675"
+        + "ca46edf44a8dee0c6d59ddd747405f40280ea21b63eb5bd3d5227e9bd3fe4753fcd4f1dffdf98667c556868d086e8c071036"
+        + "49d31497ea219bec171918374f2915ddf0958341b6ef7fdb00453183";
     /** Where the client fetches the server list (slr.ws). Served by the bridge. */
     static final String WORLDLIST_URL = "http://127.0.0.1:4567/worldlist.ws";
     /** Applet codebase. Not used for cache (JS5 handles that) but must be a valid URL. */

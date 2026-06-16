@@ -87,7 +87,7 @@ app.post('/daily-claim', auth, (req, res) => {
   res.json(result);
 });
 
-const RSA_MODULUS = process.env.RSA_MODULUS || 'bd7bc24d6bbcf0de2525fc75678fc47e89d1173919ff5cda37ff99dca5f7054804cc90c6166e23021f10d2da939f60432675ca46edf44a8dee0c6d59ddd747405f40280ea21b63eb5bd3d31497ea219bec171918374f2915ddf0958341b6ef7fdb00453183';
+const RSA_MODULUS = process.env.RSA_MODULUS || 'bd7bc24d6bbcf0de2525fc75678fc47e89d1173919ff5cda37ff99dca5f7054804cc90c6166e23021f10d2da939f60432675ca46edf44a8dee0c6d59ddd747405f40280ea21b63eb5bd3d5227e9bd3fe4753fcd4f1dffdf98667c556868d086e8c07103649d31497ea219bec171918374f2915ddf0958341b6ef7fdb00453183';
 const GAME_PORT = process.env.GAME_PORT || 43594;
 const SERVER_HOST = process.env.SERVER_HOST || '127.0.0.1';
 const GAME_REVISION = process.env.GAME_REVISION || 233;
