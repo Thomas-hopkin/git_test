@@ -35,7 +35,7 @@ class PvpSpawn @Inject constructor(private val stormGame: StormGame) : PluginScr
             val cls = playerClass.getOrPut(player.username) { LoadoutClass.FIGHTER }
             equipLoadout(player, cls)
             player.mes("=== RUNE PvP === Kill players to earn RUNE tokens on Solana!")
-            player.mes("Pure builds (1 def). Choose your kit: ::fighter  ::archer  ::wizard")
+            player.mes("Pure builds (1 def). Type ::help for all commands.")
         }
 
         onProtectedEvent<PlayerRespawnedEvent>(PlayerRespawnedEvent.ID) {

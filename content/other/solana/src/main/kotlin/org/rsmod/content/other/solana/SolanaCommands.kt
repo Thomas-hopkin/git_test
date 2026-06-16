@@ -47,6 +47,11 @@ private fun post(path: String, body: Map<String, Any>): Map<*, *>? {
 
 class SolanaCommands : PluginScript() {
     override fun ScriptContext.startup() {
+        onCommand("help") {
+            modLevel = modlevels.player
+            desc = "Show all available commands"
+            cheat { helpCommand(this) }
+        }
         onCommand("wallet") {
             modLevel = modlevels.player
             desc = "Link your Solana wallet or check status"
@@ -68,6 +73,26 @@ class SolanaCommands : PluginScript() {
             cheat { balanceCommand(this) }
         }
     }
+}
+
+private fun helpCommand(cheat: Cheat) = with(cheat) {
+    player.mes("=== RUNE PvP Commands ===")
+    player.mes("-- Loadout --")
+    player.mes("::fighter  Melee pure (obsidian + granite maul)")
+    player.mes("::archer   Ranged pure (void + twisted bow)")
+    player.mes("::wizard   Mage pure (void + volatile staff)")
+    player.mes("-- Switches (add to inventory) --")
+    player.mes("::spec gmaul      Add granite maul (50% spec)")
+    player.mes("::spec voidwaker  Add voidwaker (50% spec)")
+    player.mes("::switch barrage  Add kodai wand + runes (ice barrage)")
+    player.mes("::switch range    Add ACB + dragonstone bolts")
+    player.mes("-- Battle Royale --")
+    player.mes("::join  Join Survive the Storm")
+    player.mes("-- RUNE Tokens --")
+    player.mes("::balance          Check your balance")
+    player.mes("::wallet [address] Link or view Solana wallet")
+    player.mes("::withdraw [amt]   Send RUNE to your wallet")
+    player.mes("::deposit          How to deposit RUNE")
 }
 
 private fun walletCommand(cheat: Cheat) = with(cheat) {
