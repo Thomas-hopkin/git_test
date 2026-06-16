@@ -28,6 +28,9 @@ internal val STORM_PHASES = listOf(ZONE_FULL, ZONE_60PCT, ZONE_30PCT, ZONE_FINAL
 internal const val STORM_PHASE_TICKS = 250  // ~2.5 min per phase at 0.6 s/tick
 internal const val STORM_MIN_PLAYERS = 1
 
+// Drop-in point inside the full safe zone, in the wilderness north of the ditch.
+internal val STORM_SPAWN = CoordGrid(3095, 3550)
+
 internal val STORM_CRATE_COORDS = listOf(
     CoordGrid(3065, 3540), CoordGrid(3085, 3555), CoordGrid(3100, 3565),
     CoordGrid(3120, 3545), CoordGrid(3060, 3575), CoordGrid(3095, 3580),

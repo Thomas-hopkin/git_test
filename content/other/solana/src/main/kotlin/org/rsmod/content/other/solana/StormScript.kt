@@ -1,6 +1,7 @@
 package org.rsmod.content.other.solana
 
 import jakarta.inject.Inject
+import org.rsmod.api.player.protect.ProtectedAccessLauncher
 import org.rsmod.api.script.onCommand
 import org.rsmod.api.script.onOpLoc1
 import org.rsmod.plugin.scripts.PluginScript
@@ -8,6 +9,7 @@ import org.rsmod.plugin.scripts.ScriptContext
 
 class StormScript @Inject constructor(
     private val game: StormGame,
+    private val protectedAccess: ProtectedAccessLauncher,
 ) : PluginScript() {
     override fun ScriptContext.startup() {
         onCommand("join") {
@@ -18,12 +20,10 @@ class StormScript @Inject constructor(
                     player.mes(err)
                     return@cheat
                 }
-                val waiting = if (game.isRunning) 0 else STORM_MIN_PLAYERS - 1
-                player.mes("You've joined the battle royale lobby!")
-                if (waiting > 0) {
-                    player.mes("Waiting for $waiting more player(s). Head to the wilderness!")
-                }
+                player.mes("You've joined the battle royale! Teleporting you into the arena...")
                 game.broadcast("${player.username} joined the lobby.")
+                // Teleport into the arena from anywhere.
+                protectedAccess.launch(player) { telejump(STORM_SPAWN) }
                 game.startIfReady()
             }
         }
