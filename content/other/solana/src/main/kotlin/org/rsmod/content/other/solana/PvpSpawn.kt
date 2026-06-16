@@ -30,7 +30,7 @@ class PvpSpawn : PluginScript() {
             val cls = playerClass.getOrPut(player.username) { LoadoutClass.FIGHTER }
             equipLoadout(player, cls)
             player.mes("=== RUNE PvP === Kill players to earn RUNE tokens on Solana!")
-            player.mes("Choose your class: ::fighter  ::archer  ::wizard")
+            player.mes("All stats 99. Pick a starter kit: ::fighter  ::archer  ::wizard")
         }
 
         onProtectedEvent<PlayerRespawnedEvent>(PlayerRespawnedEvent.ID) {
@@ -81,17 +81,14 @@ private fun equipLoadout(player: Player, cls: LoadoutClass) {
 }
 
 private fun setMaxStats(player: Player) {
-    val offensiveStats = listOf(
-        stats.attack, stats.strength, stats.ranged, stats.magic,
-        stats.hitpoints, stats.prayer,
+    val combatStats = listOf(
+        stats.attack, stats.strength, stats.defence, stats.ranged,
+        stats.magic, stats.hitpoints, stats.prayer,
     )
-    for (stat in offensiveStats) {
+    for (stat in combatStats) {
         player.statMap.setBaseLevel(stat, 99.toByte())
         player.statMap.setCurrentLevel(stat, 99.toByte())
     }
-    // Pure builds — no defence
-    player.statMap.setBaseLevel(stats.defence, 1.toByte())
-    player.statMap.setCurrentLevel(stats.defence, 1.toByte())
 }
 
 private fun equipFighter(player: Player) {
