@@ -60,15 +60,18 @@ public final class GamepackPatcher {
         System.out.println("[patcher] long hex constants found (len : prefix):");
         for (String s : unique) {
             System.out.println(String.format("  %4d : %s...", s.length(), s.substring(0, Math.min(48, s.length()))));
-            if (target == null || s.length() > target.length()) {
+            // Only target constants whose length matches the server modulus exactly —
+            // the Jagex RSA modulus is not an LDC string; other long constants are EC/game data.
+            if (s.length() == serverModulus.length()) {
                 target = s;
             }
         }
         if (target == null) {
-            System.out.println("[patcher] WARNING: no modulus-like constant found.");
+            System.out.println("[patcher] NOTE: no LDC constant matches server modulus length ("
+                + serverModulus.length() + " chars); RSA modulus supplied via search_rsa_modulus param instead.");
         } else {
-            System.out.println("[patcher] -> replacing LONGEST (" + target.length()
-                + " chars) with server modulus (" + serverModulus.length() + " chars).");
+            System.out.println("[patcher] -> replacing matched constant (" + target.length()
+                + " chars) with server modulus.");
         }
 
         // Pass 2: rewrite, dropping signing artifacts and swapping the target constant.

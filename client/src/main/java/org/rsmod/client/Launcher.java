@@ -102,6 +102,10 @@ public final class Launcher {
         p.put("22", "https://auth.runescape.com/");
         p.put("25", "233");           // revision
         p.put("28", "https://account.jagex.com/");
+        // The client reads these jav_config fields to replace its hard-coded Jagex RSA key
+        // at runtime — the modulus is NOT an LDC string constant, so ASM patching misses it.
+        p.put("search_rsa_exponent", "10001");
+        p.put("search_rsa_modulus", RSA_MODULUS);
         return p;
     }
 }
