@@ -77,6 +77,7 @@ private fun equipLoadout(player: Player, cls: LoadoutClass) {
         LoadoutClass.ARCHER -> equipArcher(player)
         LoadoutClass.WIZARD -> equipWizard(player)
     }
+    player.rebuildAppearance()
 }
 
 private fun setMaxStats(player: Player) {
