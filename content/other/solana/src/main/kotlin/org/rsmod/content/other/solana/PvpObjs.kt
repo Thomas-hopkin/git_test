@@ -34,4 +34,9 @@ object PvpObjs : ObjReferences() {
     val tormented_bracelet = find("zenyte_bracelet_enchanted")
     val eternal_boots = find("eternal_boots")
     val seers_ring_i = find("nzone_seer_ring")
+
+    // Ice barrage switch
+    val kodai_wand = find("kodai_wand")
+    val trail_ancient_staff = find("trail_ancient_staff")
+    val death_rune = find("deathrune")
 }

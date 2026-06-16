@@ -56,6 +56,7 @@ class PvpInteract : PluginScript() {
         for (item in listOf(
             pvp_objs.granite_maul, pvp_objs.voidwaker, pvp_objs.volatile_staff,
             pvp_objs.armadyl_crossbow, pvp_objs.dragon_bolts_dragonstone,
+            pvp_objs.kodai_wand, pvp_objs.trail_ancient_staff,
             pvp_objs.fire_cape, pvp_objs.barrows_gloves, pvp_objs.ava_assembler,
             pvp_objs.necklace_of_anguish, pvp_objs.occult_necklace,
             pvp_objs.tormented_bracelet, pvp_objs.eternal_boots,

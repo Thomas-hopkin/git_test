@@ -1,6 +1,7 @@
 package org.rsmod.content.other.solana
 
 import jakarta.inject.Inject
+import org.rsmod.api.player.output.mes
 import org.rsmod.api.player.protect.ProtectedAccessLauncher
 import org.rsmod.api.script.onCommand
 import org.rsmod.api.script.onOpLoc1

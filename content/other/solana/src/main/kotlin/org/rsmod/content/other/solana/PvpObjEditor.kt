@@ -21,6 +21,8 @@ internal object PvpObjEditor : ObjEditor() {
         edit(pvp_objs.volatile_staff) { iop1 = "Wield"; iop5 = "Examine" }
         edit(pvp_objs.armadyl_crossbow) { iop1 = "Wield"; iop5 = "Examine" }
         edit(pvp_objs.dragon_bolts_dragonstone) { iop1 = "Wield"; iop5 = "Examine" }
+        edit(pvp_objs.kodai_wand) { iop1 = "Wield"; iop5 = "Examine" }
+        edit(pvp_objs.trail_ancient_staff) { iop1 = "Wield"; iop5 = "Examine" }
 
         // Wearables from pvp_objs — iop1 so left-click wears immediately
         edit(pvp_objs.fire_cape) { iop1 = "Wear"; iop5 = "Examine" }

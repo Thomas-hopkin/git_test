@@ -106,10 +106,12 @@ class StormGame @Inject constructor(
             angle = loc.angle,
             shape = loc.shape,
         )
-        player.invAdd(player.inv, pvp_objs.shark, count = 5)
-        player.invAdd(player.inv, pvp_objs.karambwan, count = 3)
-        player.invAdd(player.inv, pvp_objs.prayer_potion4, count = 2)
+        player.invAdd(player.inv, pvp_objs.shark, count = 4)
+        player.invAdd(player.inv, pvp_objs.karambwan, count = 2)
+        player.invAdd(player.inv, pvp_objs.prayer_potion4, count = 1)
         player.invAdd(player.inv, pvp_objs.super_restore4, count = 1)
+        player.invAdd(player.inv, pvp_objs.super_combat_potion4, count = 1)
+        player.invAdd(player.inv, pvp_objs.ranging_potion4, count = 1)
     }
 
     private fun scheduleGameTick() {

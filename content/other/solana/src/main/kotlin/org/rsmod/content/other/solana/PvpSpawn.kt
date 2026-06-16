@@ -4,10 +4,12 @@ import jakarta.inject.Inject
 import java.util.concurrent.ConcurrentHashMap
 import org.rsmod.api.config.refs.objs
 import org.rsmod.api.config.refs.stats
+import org.rsmod.api.config.refs.varps
 import org.rsmod.api.death.PlayerRespawnedEvent
 import org.rsmod.api.invtx.invAdd
 import org.rsmod.api.invtx.invClear
 import org.rsmod.api.player.output.mes
+import org.rsmod.api.player.vars.intVarp
 import org.rsmod.api.script.onCommand
 import org.rsmod.api.script.onPlayerLogin
 import org.rsmod.api.script.onProtectedEvent
@@ -24,6 +26,8 @@ private val SPAWN = CoordGrid(3094, 3493)
 private enum class LoadoutClass { FIGHTER, ARCHER, WIZARD }
 
 private val playerClass = ConcurrentHashMap<String, LoadoutClass>()
+
+private var Player.specialEnergy by intVarp(varps.sa_energy)
 
 class PvpSpawn @Inject constructor(private val stormGame: StormGame) : PluginScript() {
     override fun ScriptContext.startup() {
@@ -67,6 +71,44 @@ class PvpSpawn @Inject constructor(private val stormGame: StormGame) : PluginScr
                 player.mes("Mage pure equipped. Volatile nightmare staff.")
             }
         }
+
+        onCommand("spec") {
+            desc = "Add a spec weapon to inventory: gmaul | voidwaker"
+            cheat {
+                when (args.firstOrNull()?.lowercase()) {
+                    "gmaul" -> {
+                        player.invAdd(player.inv, pvp_objs.granite_maul)
+                        player.mes("Granite maul added. 50% spec, smash them.")
+                    }
+                    "voidwaker" -> {
+                        player.invAdd(player.inv, pvp_objs.voidwaker)
+                        player.mes("Voidwaker added. 50% spec, good luck.")
+                    }
+                    else -> player.mes("Usage: ::spec gmaul | ::spec voidwaker")
+                }
+            }
+        }
+
+        onCommand("switch") {
+            desc = "Add a style switch to inventory: barrage | range"
+            cheat {
+                when (args.firstOrNull()?.lowercase()) {
+                    "barrage" -> {
+                        player.invAdd(player.inv, pvp_objs.kodai_wand)
+                        player.invAdd(player.inv, pvp_objs.death_rune, count = 300)
+                        player.invAdd(player.inv, objs.blood_rune, count = 150)
+                        player.invAdd(player.inv, objs.water_rune, count = 600)
+                        player.mes("Ice barrage kit added. Kodai + runes for 50 casts.")
+                    }
+                    "range" -> {
+                        player.invAdd(player.inv, pvp_objs.armadyl_crossbow)
+                        player.invAdd(player.inv, pvp_objs.dragon_bolts_dragonstone, count = 100)
+                        player.mes("Range switch added. ACB + dragonstone bolts.")
+                    }
+                    else -> player.mes("Usage: ::switch barrage | ::switch range")
+                }
+            }
+        }
     }
 }
 
@@ -93,6 +135,7 @@ private fun setMaxStats(player: Player) {
     }
     player.statMap.setBaseLevel(stats.defence, 1.toByte())
     player.statMap.setCurrentLevel(stats.defence, 1.toByte())
+    player.specialEnergy = 1000
 }
 
 private fun equipFighter(player: Player) {
