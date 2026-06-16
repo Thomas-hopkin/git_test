@@ -1,5 +1,6 @@
 package org.rsmod.content.other.solana
 
+import jakarta.inject.Inject
 import java.util.concurrent.ConcurrentHashMap
 import org.rsmod.api.config.refs.objs
 import org.rsmod.api.config.refs.stats
@@ -24,7 +25,7 @@ private enum class LoadoutClass { FIGHTER, ARCHER, WIZARD }
 
 private val playerClass = ConcurrentHashMap<String, LoadoutClass>()
 
-class PvpSpawn : PluginScript() {
+class PvpSpawn @Inject constructor(private val stormGame: StormGame) : PluginScript() {
     override fun ScriptContext.startup() {
         onPlayerLogin {
             val cls = playerClass.getOrPut(player.username) { LoadoutClass.FIGHTER }
@@ -34,6 +35,7 @@ class PvpSpawn : PluginScript() {
         }
 
         onProtectedEvent<PlayerRespawnedEvent>(PlayerRespawnedEvent.ID) {
+            stormGame.onPlayerRespawned(player.username)
             val cls = playerClass.getOrDefault(player.username, LoadoutClass.FIGHTER)
             equipLoadout(player, cls)
             telejump(SPAWN)
