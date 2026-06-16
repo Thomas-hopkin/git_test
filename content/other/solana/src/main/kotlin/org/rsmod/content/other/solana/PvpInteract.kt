@@ -1,9 +1,11 @@
 package org.rsmod.content.other.solana
 
+import org.rsmod.api.config.refs.objs
 import org.rsmod.api.config.refs.stats
 import org.rsmod.api.player.stat.statBoost
 import org.rsmod.api.player.stat.statHeal
 import org.rsmod.api.player.stat.statRestore
+import org.rsmod.api.player.worn.HeldEquipResult
 import org.rsmod.api.script.onOpHeld1
 import org.rsmod.plugin.scripts.PluginScript
 import org.rsmod.plugin.scripts.ScriptContext
@@ -48,6 +50,38 @@ class PvpInteract : PluginScript() {
             player.statRestore(stats.magic)
             invDel(it.inventory, pvp_objs.super_restore4, 1, it.slot)
             mes("You drink some of your super restore potion.")
+        }
+
+        // Equipment — PvpObjEditor sets iop1="Wield"/"Wear" so left-click equips instantly
+        for (item in listOf(
+            pvp_objs.granite_maul, pvp_objs.voidwaker, pvp_objs.volatile_staff,
+            pvp_objs.armadyl_crossbow, pvp_objs.dragon_bolts_dragonstone,
+            pvp_objs.fire_cape, pvp_objs.barrows_gloves, pvp_objs.ava_assembler,
+            pvp_objs.necklace_of_anguish, pvp_objs.occult_necklace,
+            pvp_objs.tormented_bracelet, pvp_objs.eternal_boots,
+            pvp_objs.berserker_ring_i, pvp_objs.archers_ring_i,
+            pvp_objs.rangers_boots, pvp_objs.seers_ring_i,
+        )) {
+            onOpHeld1(item) {
+                val result = invEquip(it.slot, it.inventory)
+                if (result is HeldEquipResult.Fail) {
+                    result.messages.forEach { msg -> mes(msg) }
+                }
+            }
+        }
+        for (item in listOf(
+            objs.twisted_bow, objs.abyssal_whip, objs.dragon_arrow,
+            objs.obsidian_helmet, objs.obsidian_platebody, objs.obsidian_platelegs,
+            objs.berserker_necklace, objs.dragon_boots, objs.void_ranger_helm,
+            objs.elite_void_top, objs.elite_void_robe, objs.void_gloves,
+            objs.void_mage_helm, objs.infernal_cape, objs.amulet_of_fury,
+        )) {
+            onOpHeld1(item) {
+                val result = invEquip(it.slot, it.inventory)
+                if (result is HeldEquipResult.Fail) {
+                    result.messages.forEach { msg -> mes(msg) }
+                }
+            }
         }
     }
 }
