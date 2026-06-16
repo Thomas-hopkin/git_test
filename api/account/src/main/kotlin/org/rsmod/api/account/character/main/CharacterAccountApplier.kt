@@ -29,7 +29,7 @@ constructor(private val modLevelTypes: ModLevelTypeList) :
         player.lastKnownDevice = device
         player.members = data.members
         player.username = data.loginName
-        player.displayName = data.displayName ?: ""
+        player.displayName = data.displayName ?: data.loginName
         player.coords = CoordGrid(data.coordX, data.coordZ, data.coordLevel)
         player.runEnergy = data.runEnergy
         player.xpRate = data.xpRate
