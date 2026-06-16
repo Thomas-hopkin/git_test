@@ -6,9 +6,12 @@ import org.rsmod.map.CoordGrid
 import org.rsmod.plugin.scripts.PluginScript
 import org.rsmod.plugin.scripts.ScriptContext
 
-private val DITCH_Z = 3519
-private val JUMP_SOUTH_Z = 3515  // land here when jumping south (leaving wild)
-private val JUMP_NORTH_Z = 3523  // land here when jumping north (entering wild)
+// Wilderness boundary is between z=3519 and z=3520.
+// Use z<=3521 as threshold so players who walked 1-2 tiles past the ditch
+// (because there is no collision barrier) still get sent north correctly.
+private val DITCH_SOUTH_BOUNDARY = 3521
+private val JUMP_SOUTH_Z = 3515
+private val JUMP_NORTH_Z = 3523
 
 internal object ditch_locs : LocReferences() {
     val wilderness_ditch = find("ditch_wilderness_cover")
@@ -17,7 +20,7 @@ internal object ditch_locs : LocReferences() {
 class WildernessDitch : PluginScript() {
     override fun ScriptContext.startup() {
         onOpLoc1(ditch_locs.wilderness_ditch) {
-            val destZ = if (player.coords.z <= DITCH_Z) JUMP_NORTH_Z else JUMP_SOUTH_Z
+            val destZ = if (player.coords.z <= DITCH_SOUTH_BOUNDARY) JUMP_NORTH_Z else JUMP_SOUTH_Z
             telejump(CoordGrid(player.coords.x, destZ))
         }
     }
