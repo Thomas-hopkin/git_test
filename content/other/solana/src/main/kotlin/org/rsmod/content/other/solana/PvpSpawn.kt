@@ -30,6 +30,7 @@ class PvpSpawn : PluginScript() {
         onPlayerLogin {
             val cls = playerClass.getOrPut(player.username) { LoadoutClass.FIGHTER }
             equipLoadout(player, cls)
+            telejump(SPAWN)
             player.mes("=== RUNE PvP === Kill players to earn RUNE tokens on Solana!")
             player.mes("Choose your class: ::fighter  ::archer  ::wizard")
         }
