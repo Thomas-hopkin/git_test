@@ -10,7 +10,7 @@ private val DITCH_Z = 3519
 private val JUMP_SOUTH_Z = 3515  // land here when jumping south (leaving wild)
 private val JUMP_NORTH_Z = 3523  // land here when jumping north (entering wild)
 
-private object ditch_locs : LocReferences() {
+internal object ditch_locs : LocReferences() {
     val wilderness_ditch = find("ditch_wilderness_cover")
 }
 
