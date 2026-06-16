@@ -1,7 +1,6 @@
 package org.rsmod.content.other.solana
 
 import java.util.concurrent.ConcurrentHashMap
-import org.rsmod.api.config.refs.modlevels
 import org.rsmod.api.config.refs.objs
 import org.rsmod.api.config.refs.stats
 import org.rsmod.api.death.PlayerRespawnedEvent
@@ -30,7 +29,6 @@ class PvpSpawn : PluginScript() {
         onPlayerLogin {
             val cls = playerClass.getOrPut(player.username) { LoadoutClass.FIGHTER }
             equipLoadout(player, cls)
-            telejump(SPAWN)
             player.mes("=== RUNE PvP === Kill players to earn RUNE tokens on Solana!")
             player.mes("Choose your class: ::fighter  ::archer  ::wizard")
         }
@@ -42,7 +40,6 @@ class PvpSpawn : PluginScript() {
         }
 
         onCommand("fighter") {
-            modLevel = modlevels.player
             desc = "Switch to Fighter loadout (melee)"
             cheat {
                 playerClass[player.username] = LoadoutClass.FIGHTER
@@ -52,7 +49,6 @@ class PvpSpawn : PluginScript() {
         }
 
         onCommand("archer") {
-            modLevel = modlevels.player
             desc = "Switch to Archer loadout (ranged)"
             cheat {
                 playerClass[player.username] = LoadoutClass.ARCHER
@@ -62,7 +58,6 @@ class PvpSpawn : PluginScript() {
         }
 
         onCommand("wizard") {
-            modLevel = modlevels.player
             desc = "Switch to Wizard loadout (magic)"
             cheat {
                 playerClass[player.username] = LoadoutClass.WIZARD
