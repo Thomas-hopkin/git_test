@@ -152,8 +152,8 @@ private fun equipFighter(player: Player) {
     player.invAdd(player.inv, pvp_objs.voidwaker)
     player.invAdd(player.inv, pvp_objs.super_combat_potion4, count = 2)
     player.invAdd(player.inv, pvp_objs.prayer_potion4, count = 2)
-    player.invAdd(player.inv, pvp_objs.shark, count = 10)
-    player.invAdd(player.inv, pvp_objs.karambwan, count = 5)
+    player.invAdd(player.inv, pvp_objs.shark, count = 6)
+    player.invAdd(player.inv, pvp_objs.karambwan, count = 3)
 }
 
 private fun equipArcher(player: Player) {
@@ -172,8 +172,8 @@ private fun equipArcher(player: Player) {
     player.invAdd(player.inv, pvp_objs.dragon_bolts_dragonstone, count = 100)
     player.invAdd(player.inv, pvp_objs.ranging_potion4, count = 2)
     player.invAdd(player.inv, pvp_objs.prayer_potion4, count = 2)
-    player.invAdd(player.inv, pvp_objs.shark, count = 10)
-    player.invAdd(player.inv, pvp_objs.karambwan, count = 5)
+    player.invAdd(player.inv, pvp_objs.shark, count = 6)
+    player.invAdd(player.inv, pvp_objs.karambwan, count = 3)
 }
 
 private fun equipWizard(player: Player) {
@@ -189,6 +189,6 @@ private fun equipWizard(player: Player) {
 
     player.invAdd(player.inv, pvp_objs.super_restore4, count = 4)
     player.invAdd(player.inv, pvp_objs.prayer_potion4, count = 2)
-    player.invAdd(player.inv, pvp_objs.shark, count = 10)
-    player.invAdd(player.inv, pvp_objs.karambwan, count = 5)
+    player.invAdd(player.inv, pvp_objs.shark, count = 6)
+    player.invAdd(player.inv, pvp_objs.karambwan, count = 3)
 }

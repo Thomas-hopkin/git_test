@@ -82,7 +82,9 @@ class StormGame @Inject constructor(
         lobby.clear()
 
         broadcast("=== SURVIVE THE STORM === ${activePlayers.size} player(s) entering the wilderness!")
-        broadcast("Loot the supply crates. The storm shrinks every ${STORM_PHASE_TICKS} ticks. Last one standing wins!")
+        broadcast("Loot the supply crates. The storm shrinks every ~2.5 minutes. Last one standing wins!")
+        val z = currentZone!!
+        broadcast("Current safe zone: x[${z.minX}-${z.maxX}] z[${z.minZ}-${z.maxZ}]")
 
         spawnCrates()
         scheduleGameTick()
@@ -129,8 +131,8 @@ class StormGame @Inject constructor(
 
         // Countdown warnings before each shrink
         when (STORM_PHASE_TICKS - phaseTick) {
-            30 -> broadcast("The storm shrinks in 30 seconds!")
-            10 -> broadcast("The storm shrinks in 10 seconds!")
+            50 -> broadcast("The storm shrinks in 30 seconds!")
+            17 -> broadcast("The storm shrinks in 10 seconds!")
         }
 
         // Phase transition
@@ -138,7 +140,8 @@ class StormGame @Inject constructor(
             phaseTick = 0
             if (phase < STORM_PHASES.size) {
                 phase++
-                broadcast("=== STORM CLOSING === New safe zone: ${currentZone!!}")
+                val z = currentZone!!
+                broadcast("=== STORM CLOSING === Safe zone: x[${z.minX}-${z.maxX}] z[${z.minZ}-${z.maxZ}] | Damage outside: ${z.damage}/tick")
             } else {
                 endGame()
                 return
@@ -150,8 +153,8 @@ class StormGame @Inject constructor(
         for (player in playerList) {
             if (player.username !in activePlayers) continue
             if (player.coords !in activeZone) {
-                player.mes("You are caught in the storm!", ChatType.Engine)
-                player.queueHit(delay = 0, type = HitType.Typeless, damage = activeZone.damage)
+                player.mes("You are caught in the storm! (${player.coords.x}, ${player.coords.z})", ChatType.Engine)
+                player.queueHit(delay = 1, type = HitType.Typeless, damage = activeZone.damage)
             }
         }
     }
