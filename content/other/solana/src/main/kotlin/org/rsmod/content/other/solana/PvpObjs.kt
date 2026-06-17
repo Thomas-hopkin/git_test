@@ -16,6 +16,9 @@ object PvpObjs : ObjReferences() {
     // Fighter pure
     val granite_maul = find("granite_maul")
     val voidwaker = find("voidwaker")
+    val dragon_dagger_pp = find("dragon_dagger_p++")
+    val dragon_claws = find("dragon_claws")
+    val armadyl_godsword = find("ags")
     val fire_cape = find("tzhaar_cape_fire")
     val berserker_ring_i = find("nzone_berzerker_ring")
     val barrows_gloves = find("hundred_gauntlets_level_10")

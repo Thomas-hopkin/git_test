@@ -2,13 +2,16 @@ package org.rsmod.content.other.solana
 
 import jakarta.inject.Inject
 import java.util.concurrent.ConcurrentHashMap
+import org.rsmod.api.combat.commons.magic.Spellbook
 import org.rsmod.api.config.refs.objs
 import org.rsmod.api.config.refs.stats
+import org.rsmod.api.config.refs.varbits
 import org.rsmod.api.config.refs.varps
 import org.rsmod.api.death.PlayerRespawnedEvent
 import org.rsmod.api.invtx.invAdd
 import org.rsmod.api.invtx.invClear
 import org.rsmod.api.player.output.mes
+import org.rsmod.api.player.vars.enumVarBit
 import org.rsmod.api.player.vars.intVarp
 import org.rsmod.api.script.onCommand
 import org.rsmod.api.script.onPlayerLogin
@@ -28,6 +31,7 @@ private enum class LoadoutClass { FIGHTER, ARCHER, WIZARD }
 private val playerClass = ConcurrentHashMap<String, LoadoutClass>()
 
 private var Player.specialEnergy by intVarp(varps.sa_energy)
+private var Player.spellbook by enumVarBit<Spellbook>(varbits.spellbook)
 
 class PvpSpawn @Inject constructor(private val stormGame: StormGame) : PluginScript() {
     override fun ScriptContext.startup() {
@@ -73,18 +77,30 @@ class PvpSpawn @Inject constructor(private val stormGame: StormGame) : PluginScr
         }
 
         onCommand("spec") {
-            desc = "Add a spec weapon to inventory: gmaul | voidwaker"
+            desc = "Add a spec weapon: gmaul | voidwaker | dds | claws | ags"
             cheat {
                 when (args.firstOrNull()?.lowercase()) {
                     "gmaul" -> {
                         player.invAdd(player.inv, pvp_objs.granite_maul)
-                        player.mes("Granite maul added. 50% spec, smash them.")
+                        player.mes("Granite maul added. 50% spec.")
                     }
                     "voidwaker" -> {
                         player.invAdd(player.inv, pvp_objs.voidwaker)
-                        player.mes("Voidwaker added. 50% spec, good luck.")
+                        player.mes("Voidwaker added. 50% spec.")
                     }
-                    else -> player.mes("Usage: ::spec gmaul | ::spec voidwaker")
+                    "dds" -> {
+                        player.invAdd(player.inv, pvp_objs.dragon_dagger_pp)
+                        player.mes("Dragon dagger (p++) added. 25% spec, two rapid stabs.")
+                    }
+                    "claws" -> {
+                        player.invAdd(player.inv, pvp_objs.dragon_claws)
+                        player.mes("Dragon claws added. 50% spec, four-hit slash combo.")
+                    }
+                    "ags" -> {
+                        player.invAdd(player.inv, pvp_objs.armadyl_godsword)
+                        player.mes("AGS added. 50% spec, high slash damage.")
+                    }
+                    else -> player.mes("Usage: ::spec gmaul | voidwaker | dds | claws | ags")
                 }
             }
         }
@@ -139,6 +155,7 @@ private fun setMaxStats(player: Player) {
 }
 
 private fun equipFighter(player: Player) {
+    player.spellbook = Spellbook.Standard
     player.worn[Wearpos.Hat.slot] = InvObj(objs.obsidian_helmet)
     player.worn[Wearpos.Back.slot] = InvObj(pvp_objs.fire_cape)
     player.worn[Wearpos.Front.slot] = InvObj(objs.berserker_necklace)
@@ -157,6 +174,7 @@ private fun equipFighter(player: Player) {
 }
 
 private fun equipArcher(player: Player) {
+    player.spellbook = Spellbook.Standard
     player.worn[Wearpos.Hat.slot] = InvObj(objs.void_ranger_helm)
     player.worn[Wearpos.Back.slot] = InvObj(pvp_objs.ava_assembler)
     player.worn[Wearpos.Front.slot] = InvObj(pvp_objs.necklace_of_anguish)
@@ -177,6 +195,7 @@ private fun equipArcher(player: Player) {
 }
 
 private fun equipWizard(player: Player) {
+    player.spellbook = Spellbook.Ancients
     player.worn[Wearpos.Hat.slot] = InvObj(objs.void_mage_helm)
     player.worn[Wearpos.Back.slot] = InvObj(objs.infernal_cape)
     player.worn[Wearpos.Front.slot] = InvObj(pvp_objs.occult_necklace)
