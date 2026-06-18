@@ -91,7 +91,7 @@ export default async function HomePage() {
         <FeatureCard
           icon={<ShopIcon />}
           title="Grand Exchange Hub"
-          description="Full player-driven economy. Buy and sell gear, supplies, and rare drops through the Grand Exchange."
+          description="Fight in the heart of the Grand Exchange. Spawn with full gear and jump straight into PvP — no grinding required."
         />
       </section>
 
