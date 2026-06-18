@@ -103,6 +103,14 @@ Replace `YOUR_VPS_IP` with the public IP of your VPS (e.g. `5.161.12.34`).
 
 This is the same IP as the others — the address the streaming container uses to connect to the game server.
 
+### Variable 6: Tokenomics dashboard URL
+| Field | Value |
+|-------|-------|
+| Name | `TOKENOMICS_URL` |
+| Value | `http://YOUR_VPS_IP:4000` |
+
+This powers the `/tokenomics` page — it fetches live stats (tokens burned, prizes paid, current allocation) from the tokenomics tool running on your VPS. The page still loads without it, but shows placeholder data instead of live numbers.
+
 ---
 
 ## Part 4 — Deploy

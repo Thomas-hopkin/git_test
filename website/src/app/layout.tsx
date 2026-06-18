@@ -25,11 +25,14 @@ export default function RootLayout({
               <a href="/leaderboard" className="text-zinc-400 hover:text-amber-400 transition-colors">
                 Leaderboard
               </a>
+              <a href="/tokenomics" className="text-zinc-400 hover:text-amber-400 transition-colors">
+                Tokenomics
+              </a>
               <a
-                href="#"
+                href="/play"
                 className="bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold px-4 py-1.5 rounded transition-colors text-sm"
               >
-                Download Client
+                Play Now
               </a>
             </div>
           </div>

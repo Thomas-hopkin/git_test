@@ -74,6 +74,26 @@ app.post('/config', (req, res) => {
   res.json({ ok: true })
 })
 
+// Public read-only endpoint — consumed by the website
+app.get('/public', (_req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  const config = loadConfig()
+  const history = loadHistory()
+  const successful = history.filter(r => !r.error)
+  res.json({
+    allocation: config.allocation,
+    prizes: { topN: config.prizes.topN, distribution: config.prizes.distribution },
+    schedule: { intervalMinutes: config.schedule.intervalMinutes },
+    stats: {
+      totalTokensBurned: successful.reduce((s, r) => s + r.tokensBurned, 0),
+      totalPrizeSol: successful.reduce((s, r) => s + r.prizesSol, 0),
+      totalBuybackSol: successful.reduce((s, r) => s + r.buybackSol, 0),
+      cyclesRun: successful.length,
+      lastRun: history.length > 0 ? history[history.length - 1].timestamp : null,
+    },
+  })
+})
+
 app.post('/run-now', async (_req, res) => {
   if (running) { res.status(409).json({ error: 'Already running' }); return }
   running = true
