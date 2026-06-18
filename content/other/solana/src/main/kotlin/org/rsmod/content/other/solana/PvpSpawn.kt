@@ -23,8 +23,8 @@ import org.rsmod.map.CoordGrid
 import org.rsmod.plugin.scripts.PluginScript
 import org.rsmod.plugin.scripts.ScriptContext
 
-// Just outside the wilderness ditch, Edgeville
-private val SPAWN = CoordGrid(3094, 3493)
+// Grand Exchange centre — wilderness ditch is ~33 tiles north
+private val SPAWN = CoordGrid(3165, 3487)
 
 private enum class LoadoutClass { FIGHTER, ARCHER, WIZARD }
 
@@ -38,7 +38,7 @@ class PvpSpawn @Inject constructor(private val stormGame: StormGame) : PluginScr
         onPlayerLogin {
             val cls = playerClass.getOrPut(player.username) { LoadoutClass.FIGHTER }
             equipLoadout(player, cls)
-            player.mes("=== RUNE PvP === Kill players to earn RUNE tokens on Solana!")
+            player.mes("=== RUNE PvP === Grand Exchange base — wilderness is just north!")
             player.mes("Pure builds (1 def). Type ::help for all commands.")
         }
 
