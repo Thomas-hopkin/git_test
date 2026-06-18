@@ -8,8 +8,13 @@ import org.rsmod.api.script.onPlayerLogout
 import org.rsmod.plugin.scripts.PluginScript
 import org.rsmod.plugin.scripts.ScriptContext
 
-class PvpStatsScript @Inject constructor(private val store: KillStatsStore) : PluginScript() {
+class PvpStatsScript @Inject constructor(
+    private val store: KillStatsStore,
+    private val api: LeaderboardApi,
+) : PluginScript() {
     override fun ScriptContext.startup() {
+        api.start()
+
         onPlayerLogout { store.save() }
 
         onCommand("stats") {
