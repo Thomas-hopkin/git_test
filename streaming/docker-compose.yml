@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+
+  # neko-rooms: manages one Docker container per player session
+  # Exposes REST API on :3000, creates containers from the runepvp-client image
+  neko-rooms:
+    image: m1k1o/neko-rooms:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      # WebRTC UDP ports — each room gets one port from this range
+      - "52000-52100:52000-52100/udp"
+      - "52000-52100:52000-52100/tcp"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      NEKO_ROOMS_BIND: ":3000"
+      # Image built from our Dockerfile (run: docker build -t runepvp-client ./streaming)
+      NEKO_ROOMS_NEKO_IMAGE: "runepvp-client:latest"
+      # Public IP of your VPS — critical for WebRTC NAT traversal
+      NEKO_ROOMS_NAT1TO1: "${VPS_IP}"
+      # Port range allocated to rooms (one port per session)
+      NEKO_ROOMS_PORT_FROM: "52000"
+      NEKO_ROOMS_PORT_TO: "52100"
