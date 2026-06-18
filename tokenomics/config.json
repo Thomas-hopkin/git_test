@@ -1,0 +1,25 @@
+{
+  "allocation": {
+    "buybackBurnPercent": 100,
+    "prizesPercent": 0
+  },
+  "prizes": {
+    "topN": 10,
+    "distribution": "weighted",
+    "weightedShares": [30, 20, 15, 10, 8, 5, 4, 3, 3, 2]
+  },
+  "schedule": {
+    "intervalMinutes": 60,
+    "minSolToProcess": 0.05
+  },
+  "solana": {
+    "rpcUrl": "https://api.mainnet-beta.solana.com",
+    "tokenMint": "REPLACE_WITH_YOUR_TOKEN_MINT_ADDRESS"
+  },
+  "gameApi": {
+    "url": "http://localhost:8080"
+  },
+  "dashboard": {
+    "port": 4000
+  }
+}

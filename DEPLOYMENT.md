@@ -322,3 +322,79 @@ cd streaming && docker compose restart
 ```
 
 The website on Vercel updates automatically when you push to GitHub.
+
+---
+
+## Part 11 — Set up the tokenomics tool
+
+This tool automatically takes SOL from your creator fee wallet and splits it between buying & burning your token and paying out prizes to top players. You control the split from a web dashboard.
+
+### 11a. Install Node.js on your VPS
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt install -y nodejs
+node --version
+# Should print: v20.x.x
+```
+
+### 11b. Install dependencies
+
+```bash
+cd /home/runepvp/tokenomics
+npm install
+```
+
+### 11c. Create the config files
+
+```bash
+cp .env.example .env
+nano .env
+```
+
+Paste your Phantom wallet private key:
+```
+WALLET_PRIVATE_KEY=your_key_here
+```
+
+To get your private key from Phantom: open Phantom → Settings → Security & Privacy → Export Private Key. **Keep this secret — anyone with this key controls the wallet.**
+
+Save: Ctrl+X, then Y, then Enter.
+
+Then edit `config.json` to set your token mint address:
+```bash
+nano config.json
+```
+
+Replace `REPLACE_WITH_YOUR_TOKEN_MINT_ADDRESS` with your token's mint address from pump.fun.
+Also update `gameApi.url` to `http://localhost:8080`.
+
+### 11d. Open the dashboard port
+
+```bash
+ufw allow 4000
+```
+
+### 11e. Start the tool
+
+```bash
+cd /home/runepvp/tokenomics
+npm start
+```
+
+Open `http://YOUR_VPS_IP:4000` in your browser — you'll see the dashboard.
+
+**To run it in the background:**
+```bash
+nohup npm start > /home/runepvp/tokenomics/tokenomics.log 2>&1 &
+echo $! > /home/runepvp/tokenomics/tokenomics.pid
+```
+
+### 11f. Using the dashboard
+
+- **Buyback & Burn %** + **Prize Payouts %** must always add up to 100
+- Start at 100% / 0% to build burn momentum, switch to 50% / 50% once you have active players
+- Click **Run Now** to test it manually before the scheduled cycle fires
+- The two percentage inputs auto-sync when you type (change one, the other adjusts)
+
+The tool keeps 0.05 SOL in the wallet at all times to cover transaction fees.
