@@ -41,13 +41,13 @@ export default async function HomePage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="#"
+            <Link
+              href="/play"
               className="inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold px-8 py-3.5 rounded-lg transition-colors text-base"
             >
               <DownloadIcon />
-              Download Client
-            </a>
+              Play Now
+            </Link>
             <Link
               href="/leaderboard"
               className="inline-flex items-center justify-center gap-2 border border-zinc-700 hover:border-amber-500 text-zinc-300 hover:text-amber-400 font-semibold px-8 py-3.5 rounded-lg transition-colors text-base"
@@ -101,15 +101,15 @@ export default async function HomePage() {
           Ready to start PKing?
         </h2>
         <p className="text-zinc-400 mb-8 max-w-md mx-auto">
-          Download the client, create your account, and jump straight into the wilderness.
+          No download needed. Click Play Now and you're in the wilderness in seconds.
         </p>
-        <a
-          href="#"
+        <Link
+          href="/play"
           className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold px-10 py-3.5 rounded-lg transition-colors"
         >
           <DownloadIcon />
-          Download Client
-        </a>
+          Play Now — Free
+        </Link>
       </section>
     </div>
   )
