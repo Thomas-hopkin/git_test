@@ -327,74 +327,322 @@ The website on Vercel updates automatically when you push to GitHub.
 
 ## Part 11 — Set up the tokenomics tool
 
-This tool automatically takes SOL from your creator fee wallet and splits it between buying & burning your token and paying out prizes to top players. You control the split from a web dashboard.
+### What this does
 
-### 11a. Install Node.js on your VPS
+Every time someone buys or sells your token on pump.fun, pump.fun sends a small fee (in SOL) to your creator wallet. This tool runs in the background on your VPS and automatically:
+
+1. Detects SOL that has accumulated in your wallet from fees
+2. Splits it according to your chosen percentages
+3. **Buyback & burn**: swaps the SOL for your own token on the open market, then destroys those tokens forever (reducing supply, which pushes the price up)
+4. **Prize payouts**: sends SOL directly to the Solana wallets of your top players
+
+You control the split from a web dashboard at `http://YOUR_VPS_IP:4000`. No code changes needed — just type in numbers and click Save.
+
+---
+
+### 11a. How pump.fun creator fees work
+
+When you launch a token on pump.fun you can set a **creator fee** (up to 1%) on every trade. This fee goes to whichever Solana wallet you connected to pump.fun when you created the token. That is the wallet you need to use here.
+
+**To confirm which wallet receives your fees:**
+1. Go to your token's page on pump.fun
+2. Look for "Creator" — it shows the wallet address
+3. That address must match the wallet whose private key you'll set up below
+
+> If you haven't launched your token yet, do that first on pump.fun, then come back here.
+
+---
+
+### 11b. Install Node.js on your VPS
+
+SSH into your VPS (see Part 2), then run:
 
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt install -y nodejs
 node --version
 # Should print: v20.x.x
+npm --version
+# Should print: 10.x.x
 ```
 
-### 11b. Install dependencies
+---
+
+### 11c. Install the tool's dependencies
 
 ```bash
 cd /home/runepvp/tokenomics
 npm install
 ```
 
-### 11c. Create the config files
+This downloads the Solana libraries the tool needs. Takes about 30 seconds.
+
+---
+
+### 11d. Get your wallet private key
+
+The tool needs to sign transactions on your behalf (to execute swaps and send prizes). It does this using your wallet's private key.
+
+> ⚠️ **Your private key controls your wallet completely. Anyone who has it can take all your funds. Never share it. Never commit it to GitHub. The `.gitignore` file already prevents `.env` from being uploaded — do not override this.**
+
+**To export from Phantom (mobile):**
+1. Open Phantom → tap your wallet name at the top
+2. Tap the settings icon (⚙) next to your wallet
+3. Tap **Show Secret Recovery Phrase** — no, wait — tap **Export Private Key** instead
+4. Enter your Phantom password
+5. You'll see a long string of random letters and numbers — that's your private key
+6. Copy it
+
+**To export from Phantom (browser extension):**
+1. Open Phantom → click the hamburger menu (☰)
+2. Settings → Security & Privacy → Export Private Key
+3. Enter your password → copy the key
+
+---
+
+### 11e. Create the secret config file
+
+Back in your VPS terminal:
 
 ```bash
+cd /home/runepvp/tokenomics
 cp .env.example .env
 nano .env
 ```
 
-Paste your Phantom wallet private key:
+The file looks like this:
 ```
-WALLET_PRIVATE_KEY=your_key_here
+WALLET_PRIVATE_KEY=your_base58_private_key_here
 ```
 
-To get your private key from Phantom: open Phantom → Settings → Security & Privacy → Export Private Key. **Keep this secret — anyone with this key controls the wallet.**
+Delete `your_base58_private_key_here` and paste your private key in its place. The line should look like:
+```
+WALLET_PRIVATE_KEY=5Kd3NBUAdUnhyzenEwVLy8pBKwEFjS8BcuJQFPPQe1xGnBxLKTNxxxxxxxxxx
+```
 
-Save: Ctrl+X, then Y, then Enter.
+Save and exit: press **Ctrl+X**, then **Y**, then **Enter**.
 
-Then edit `config.json` to set your token mint address:
+---
+
+### 11f. Find your token mint address
+
+The mint address is pump.fun's unique identifier for your token — it's the address people use to trade it.
+
+**To find it:**
+1. Go to your token's page on pump.fun
+2. Look at the URL — it will be something like:
+   `https://pump.fun/coin/ABCDEFxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+3. The long string after `/coin/` is your mint address
+4. Copy it
+
+Alternatively, in your Phantom wallet, tap on your token → tap the address shown under the token name.
+
+---
+
+### 11g. Configure the tool
+
 ```bash
+cd /home/runepvp/tokenomics
 nano config.json
 ```
 
-Replace `REPLACE_WITH_YOUR_TOKEN_MINT_ADDRESS` with your token's mint address from pump.fun.
-Also update `gameApi.url` to `http://localhost:8080`.
+The file looks like this:
 
-### 11d. Open the dashboard port
+```json
+{
+  "allocation": {
+    "buybackBurnPercent": 100,
+    "prizesPercent": 0
+  },
+  "prizes": {
+    "topN": 10,
+    "distribution": "weighted",
+    "weightedShares": [30, 20, 15, 10, 8, 5, 4, 3, 3, 2]
+  },
+  "schedule": {
+    "intervalMinutes": 60,
+    "minSolToProcess": 0.05
+  },
+  "solana": {
+    "rpcUrl": "https://api.mainnet-beta.solana.com",
+    "tokenMint": "REPLACE_WITH_YOUR_TOKEN_MINT_ADDRESS"
+  },
+  "gameApi": {
+    "url": "http://localhost:8080"
+  },
+  "dashboard": {
+    "port": 4000
+  }
+}
+```
+
+Make two changes:
+
+1. Replace `REPLACE_WITH_YOUR_TOKEN_MINT_ADDRESS` with the mint address you copied in step 11f
+2. The `gameApi.url` should already say `http://localhost:8080` — leave it as is (the game server runs on the same machine)
+
+Save and exit: **Ctrl+X**, **Y**, **Enter**.
+
+**What the other settings mean:**
+- `buybackBurnPercent: 100` — right now 100% of fees go to buybacks. Change this in the dashboard later.
+- `intervalMinutes: 60` — runs once per hour
+- `minSolToProcess: 0.05` — won't run if less than 0.05 SOL has accumulated (avoids wasting gas on tiny amounts)
+- `weightedShares` — how prizes are split between top players. The defaults give #1 place 30% of the prize pool, #2 gets 20%, etc. You can change these numbers.
+
+---
+
+### 11h. Open the dashboard port
 
 ```bash
 ufw allow 4000
+ufw status
+# Should show port 4000 in the list
 ```
 
-### 11e. Start the tool
+---
+
+### 11i. Test it manually first
+
+Before running it on a schedule, test that everything is wired up correctly:
 
 ```bash
 cd /home/runepvp/tokenomics
 npm start
 ```
 
-Open `http://YOUR_VPS_IP:4000` in your browser — you'll see the dashboard.
-
-**To run it in the background:**
-```bash
-nohup npm start > /home/runepvp/tokenomics/tokenomics.log 2>&1 &
-echo $! > /home/runepvp/tokenomics/tokenomics.pid
+You'll see:
+```
+Tokenomics dashboard: http://localhost:4000
+Cycle runs every 60 minutes
 ```
 
-### 11f. Using the dashboard
+Open `http://YOUR_VPS_IP:4000` in your browser. You'll see the dashboard.
 
-- **Buyback & Burn %** + **Prize Payouts %** must always add up to 100
-- Start at 100% / 0% to build burn momentum, switch to 50% / 50% once you have active players
-- Click **Run Now** to test it manually before the scheduled cycle fires
-- The two percentage inputs auto-sync when you type (change one, the other adjusts)
+Click **Run Now**. One of two things will happen:
 
-The tool keeps 0.05 SOL in the wallet at all times to cover transaction fees.
+- **"Only X SOL available (min: 0.05)"** — the tool is working correctly, you just don't have enough fees yet. That's fine.
+- **"✓ Done"** — it ran successfully and either burned tokens or sent prizes (or both).
+- **An error message** — see the Troubleshooting section below.
+
+Press **Ctrl+C** to stop it.
+
+---
+
+### 11j. Run it permanently in the background
+
+```bash
+# Start it (runs in background, keeps going when you close the terminal)
+nohup npm --prefix /home/runepvp/tokenomics start > /home/runepvp/tokenomics/tokenomics.log 2>&1 &
+echo $! > /home/runepvp/tokenomics/tokenomics.pid
+
+# Verify it started
+tail -5 /home/runepvp/tokenomics/tokenomics.log
+# Should show: "Tokenomics dashboard: http://localhost:4000"
+```
+
+To check on it later:
+```bash
+tail -20 /home/runepvp/tokenomics/tokenomics.log
+```
+
+To stop it:
+```bash
+kill $(cat /home/runepvp/tokenomics/tokenomics.pid)
+```
+
+**To make it auto-start after a reboot:**
+
+```bash
+cat > /etc/systemd/system/runepvp-tokenomics.service << 'EOF'
+[Unit]
+Description=RUNE PvP Tokenomics
+After=network.target runepvp.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/runepvp/tokenomics
+ExecStart=/usr/bin/npm start
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/home/runepvp/tokenomics/tokenomics.log
+StandardError=append:/home/runepvp/tokenomics/tokenomics.log
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable runepvp-tokenomics
+systemctl start runepvp-tokenomics
+systemctl status runepvp-tokenomics
+```
+
+---
+
+### 11k. Using the dashboard
+
+Open `http://YOUR_VPS_IP:4000` any time to change the settings.
+
+**Allocation:**
+- **Buyback & Burn %** and **Prize Payouts %** always add up to 100 — change one and the other adjusts automatically
+- Recommended starting point: **100% burn / 0% prizes** until the token has real volume
+- Switch to **50% burn / 50% prizes** once you have 10+ active players per day
+
+**Top N prize winners:**
+- How many players share the prize pool each cycle
+- Default is 10 — top 10 players by kill count split the prize SOL
+
+**Run every (minutes):**
+- How often the cycle fires automatically
+- 60 minutes is a good default — short enough to feel live, long enough for fees to accumulate
+
+**Min SOL to process:**
+- The cycle silently skips if your wallet balance is below this number
+- Keeps the tool from wasting transaction fees on tiny amounts
+
+**Run Now button:**
+- Triggers a cycle immediately regardless of the schedule
+- Useful for testing or for manually running a payout after a tournament
+
+**History table:**
+- Shows every cycle that has run — when it ran, how much SOL was processed, how many tokens were burned, how much SOL went to prizes, and whether it succeeded
+
+---
+
+### 11l. How prize payouts work end-to-end
+
+1. A player types `::wallet ABC...XYZ` in-game to register their Solana wallet address
+2. Their kills are tracked automatically in the leaderboard
+3. When the tokenomics cycle runs, it fetches the leaderboard from the game server
+4. It filters to only players who have registered a wallet **and** have at least 1 kill
+5. It sends SOL directly to those wallets — the player receives it in their Phantom automatically
+6. Players can verify their payout at solscan.io by searching their wallet address
+
+Players don't need to claim anything — prizes land in their wallet automatically.
+
+---
+
+### Troubleshooting
+
+**"WALLET_PRIVATE_KEY not set in .env"**
+- The `.env` file is missing or in the wrong folder
+- Run `ls -la /home/runepvp/tokenomics/` and check `.env` exists
+- If not: `cp /home/runepvp/tokenomics/.env.example /home/runepvp/tokenomics/.env` and fill it in again
+
+**"Jupiter quote failed" or "Jupiter swap failed"**
+- Jupiter couldn't find a trading route for your token
+- This usually means your token hasn't graduated from pump.fun's bonding curve yet (not enough volume)
+- Or the token mint address in `config.json` is wrong — double-check it
+
+**"Could not fetch leaderboard from game server"**
+- The game server isn't running, or `gameApi.url` in `config.json` is wrong
+- Test manually: `curl http://localhost:8080/api/leaderboard` — should return `[]` or a list of players
+
+**"Only X SOL available"**
+- Not an error — just means not enough fee SOL has accumulated yet
+- Lower `minSolToProcess` in the dashboard if you want it to run on smaller amounts (not recommended below 0.01 due to transaction fees)
+
+**Dashboard won't load at `http://YOUR_VPS_IP:4000`**
+- Check the tool is running: `tail -5 /home/runepvp/tokenomics/tokenomics.log`
+- Check port 4000 is open: `ufw status`
