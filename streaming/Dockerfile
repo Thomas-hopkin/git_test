@@ -1,5 +1,7 @@
 # neko base provides: Xvfb, PulseAudio, WebRTC server, supervisord
 FROM ghcr.io/m1k1o/neko/base:latest
+# Required for neko-rooms v3 to recognise this image
+LABEL net.m1k1o.neko.api-version=3
 
 # Java runtime for the OSRS client
 RUN apt-get update && apt-get install -y \

@@ -5,7 +5,7 @@ services:
   # neko-rooms: manages one Docker container per player session
   # Exposes REST API on :3000, creates containers from the runepvp-client image
   neko-rooms:
-    image: ghcr.io/m1k1o/neko-rooms:latest
+    image: m1k1o/neko-rooms:latest
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -23,13 +23,3 @@ services:
       # Port range allocated to rooms (one port per session)
       NEKO_ROOMS_PORT_FROM: "52000"
       NEKO_ROOMS_PORT_TO: "52100"
-      # Passed into every neko container
-      NEKO_ROOMS_NEKO_ENV: |
-        NEKO_SCREEN=1280x720@30
-        NEKO_PASSWORD=play
-        NEKO_ADMIN_PASSWORD=${NEKO_ADMIN_PASSWORD}
-        NEKO_EPR=52000-52100
-        NEKO_NAT1TO1=${VPS_IP}
-        NEKO_ICELITE=true
-        GAME_HOST=${GAME_HOST}
-        GAME_PORT=${GAME_PORT:-43594}
