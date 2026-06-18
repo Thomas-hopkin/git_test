@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
     implementation(projects.api.pluginCommons)
+    implementation(libs.jackson.databind)
 }

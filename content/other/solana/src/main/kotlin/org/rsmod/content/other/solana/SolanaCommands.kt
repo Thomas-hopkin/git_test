@@ -29,7 +29,9 @@ private fun helpCommand(cheat: Cheat) = with(cheat) {
     player.mes("::spec dds       Dragon dagger p++ (25% spec, double stab)")
     player.mes("::spec claws     Dragon claws (50% spec, 4-hit slash)")
     player.mes("::spec ags       Armadyl godsword (50% spec, massive slash)")
-    player.mes("-- Style switches --")
-    player.mes("::switch barrage  Kodai + runes (ice barrage, wizard kit)")
-    player.mes("::switch range    ACB + dragonstone bolts")
+    player.mes("-- Stats & prizes --")
+    player.mes("::stats            Your kills / deaths / K/D")
+    player.mes("::stats <player>   Another player's stats")
+    player.mes("::top              Top 10 players by kills")
+    player.mes("::wallet <addr>    Register Solana wallet for SOL prizes")
 }
