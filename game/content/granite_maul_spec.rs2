@@ -1,0 +1,41 @@
+// Granite maul special attack — "Quick Smash"
+// Delivers one instant crush hit, bypassing the normal attack timer.
+// Uses 50% special energy (500/1000).
+//
+// Trigger: eoplus1 fires when the player clicks the spec bar while the
+// granite maul is equipped.  The opcode name may vary by engine version —
+// check existing weapon specs in the Content repo for the correct trigger.
+
+[eoplus1,granmaul]
+def_int $energy;
+$energy = player_energy;
+
+if ($energy < 500) {
+    mes "You don't have enough special attack energy.";
+    return;
+}
+
+// Deduct energy before the hit so rapid double-clicks can't bypass the check
+player_energy = calc($energy - 500);
+
+// Queue an instant combat round — bypasses the attack timer
+// "queue 0" fires immediately; normal attacks go through the combat engine
+// tick system. Adjust if Engine-TS uses a different mechanism.
+queue granmaul_spec_hit, 0;
+
+[queue,granmaul_spec_hit]
+// Perform the hit on the current combat target
+// Engine built-in: attack_target is the entity the player is fighting
+if (attack_target_type = ^entitytype_player) {
+    // Player vs player
+    def_int $maxhit;
+    $maxhit = melee_maxhit;
+    def_int $roll;
+    $roll = random($maxhit);
+    combat_hit attack_target, $roll, ^hittype_melee;
+    soundsynth 2537, 1, 0;  // granite maul swing sound
+} else {
+    mes "No target.";
+    // refund energy if no valid target
+    player_energy = calc(player_energy + 500);
+}

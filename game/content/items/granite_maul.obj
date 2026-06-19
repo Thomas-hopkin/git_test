@@ -1,0 +1,29 @@
+// Granite maul item definition override for RUNE PvP.
+// This file adds spec-attack parameters to the existing granite maul.
+// Place in data/src/obj/ — it will override or extend the base definition
+// from the Content repo.
+//
+// Verify the item name against data/src/obj/ in the cloned Content repo;
+// it may already be defined as "granmaul" or "granite_maul".
+
+[granmaul]
+name=Granite maul
+desc=A heavy two-handed crush weapon with a powerful special attack.
+// Spec attack uses 50% energy and delivers an instant hit
+specenergy=500
+specanim=1667
+specgfx=340
+specbar=yes
+wearpos=weapon
+wearpos2=arms
+attackspeed=7
+attacktype=crush
+// Strength bonus — match OSRS original stats
+bonusstr=81
+bonusatk_crush=81
+bonusdef_slash=-2
+bonusdef_stab=-2
+bonusdef_crush=-2
+weight=9
+members=no
+tradeable=yes

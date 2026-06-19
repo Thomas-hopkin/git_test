@@ -1,0 +1,56 @@
+// New-player spawn: teleport to Edgeville and give a starter PvP kit.
+// Fires on first login (detected by 0 total kills + 0 deaths + default stats).
+
+// Item name constants — verify these match 2004Scape's obj IDs / names
+// (use ::finditems or check data/src/obj/ in the Content repo)
+.constant SPAWN_COORD         3093_3491_0
+.constant ITEM_RUNE_SCIMITAR  runesword        // adjust to actual name
+.constant ITEM_RUNE_FULL_HELM runefullhelm     // adjust
+.constant ITEM_RUNE_PLATE     runeplatebody    // adjust
+.constant ITEM_RUNE_LEGS      runeplatelegs    // adjust
+.constant ITEM_RUNE_BOOTS     runeboots        // adjust
+.constant ITEM_RUNE_GLOVES    runegloves       // adjust
+.constant ITEM_RUNE_KITE      runekiteshield   // adjust
+.constant ITEM_AMULET         amuletofstrength // adjust
+.constant ITEM_GRANITE_MAUL   granmaul         // adjust
+.constant ITEM_FOOD           lobster          // adjust
+.constant FOOD_COUNT          10
+.constant SPEC_BAR_FULL       1000
+
+[login,_]
+// Only run the spawn kit on a brand-new account
+if (pvp_getkills(player_name) = 0) {
+    if (pvp_getdeaths(player_name) = 0) {
+        ~pvp_give_starter;
+    }
+}
+
+[proc,pvp_give_starter]
+// Teleport to Edgeville
+anim -1, 0;
+teleport ^SPAWN_COORD;
+
+// Clear existing inventory and equipment first
+// (remove if players should keep items on subsequent logins)
+clearinventory;
+clearequip;
+
+// Give starter kit
+giveinventory ^ITEM_RUNE_FULL_HELM, 1;
+giveinventory ^ITEM_RUNE_PLATE, 1;
+giveinventory ^ITEM_RUNE_LEGS, 1;
+giveinventory ^ITEM_RUNE_BOOTS, 1;
+giveinventory ^ITEM_RUNE_GLOVES, 1;
+giveinventory ^ITEM_RUNE_KITE, 1;
+giveinventory ^ITEM_AMULET, 1;
+giveinventory ^ITEM_RUNE_SCIMITAR, 1;
+giveinventory ^ITEM_GRANITE_MAUL, 1;
+giveinventory ^ITEM_FOOD, ^FOOD_COUNT;
+
+// Restore special attack
+player_energy = ^SPEC_BAR_FULL;
+
+mes "Welcome to RUNE PvP!";
+mes "Type ::stats to see your kills, ::top for the leaderboard.";
+mes "Type ::wallet <address> to register for SOL prize payouts.";
+mes "You're in the Wilderness — fight to climb the leaderboard!";

@@ -1,0 +1,33 @@
+// Player commands for PvP stats and wallet registration.
+
+// ::stats — personal kill/death stats
+[command,stats]
+def_int $kills;
+def_int $deaths;
+$kills = pvp_getkills(player_name);
+$deaths = pvp_getdeaths(player_name);
+mes "=== Your PvP Stats ===";
+mes "Kills: " + $kills;
+mes "Deaths: " + $deaths;
+if (calc($deaths = 0)) {
+    mes "K/D: perfect";
+} else {
+    mes "K/D: " + calc($kills / $deaths);
+}
+
+// ::top — global leaderboard (top 5 in chat)
+[command,top]
+pvp_showtop;
+
+// ::wallet <address> — link Solana wallet for prize payouts
+[command,wallet]
+def_string $addr;
+$addr = commandarg;
+if (^string_length($addr) < 32) {
+    mes "Usage: ::wallet <solana_address>";
+    mes "Example: ::wallet 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU";
+    return;
+}
+pvp_setwallet(player_name, $addr);
+mes "Wallet registered: " + $addr;
+mes "You are now eligible for hourly prize payouts.";

@@ -2,8 +2,8 @@
 
 This guide walks you through getting the website live on the internet.
 The website is the Next.js app in the `website/` folder — it shows the
-landing page, leaderboard, player profiles, and the "Play Now" browser
-streaming page.
+landing page, leaderboard, player profiles, and the "Play Now" page that
+links players to the browser-based game client.
 
 **You do NOT need to know how to code to follow this guide.**
 
@@ -63,9 +63,9 @@ You're now on the Vercel dashboard.
 
 Still on the Configure Project page, scroll down to **Environment Variables**.
 
-You need to add these four variables. Click **Add** for each one:
+You need to add these three variables. Click **Add** for each one:
 
-### Variable 1: Game server API
+### Variable 1: Game server leaderboard API
 | Field | Value |
 |-------|-------|
 | Name | `GAME_API_URL` |
@@ -75,33 +75,26 @@ Replace `YOUR_VPS_IP` with the public IP of your VPS (e.g. `5.161.12.34`).
 
 > **Don't have a VPS running yet?** You can skip this for now and add it later — the website will just show 0 kills and 0 SOL paid out until the game server is live.
 
-### Variable 2: Streaming service URL
+### Variable 2: Game client URL
 | Field | Value |
 |-------|-------|
-| Name | `NEKO_ROOMS_URL` |
-| Value | `http://YOUR_VPS_IP:3000` |
+| Name | `NEXT_PUBLIC_GAME_CLIENT_URL` |
+| Value | `http://YOUR_VPS_IP` |
 
-### Variable 3: Streaming Docker image name
+This is the address players open to play in the browser. The 2004Scape game server
+serves both the client and the WebSocket connection on port 80.
+
+> The `NEXT_PUBLIC_` prefix is required — it tells Next.js to make this value
+> available in the browser (not just on the server). Without it the "Play" page
+> won't know where to send players.
+
+### Variable 3: Tokenomics dashboard URL
 | Field | Value |
 |-------|-------|
-| Name | `NEKO_IMAGE` |
-| Value | `runepvp-client:latest` |
+| Name | `TOKENOMICS_URL` |
+| Value | `http://YOUR_VPS_IP:4000` |
 
-> Leave this exactly as shown — it matches the Docker image name in the deployment guide.
-
-### Variable 4: Streaming admin password
-| Field | Value |
-|-------|-------|
-| Name | `NEKO_ADMIN_PASSWORD` |
-| Value | `(the password you set in streaming/.env on your VPS)` |
-
-### Variable 5: Game server address (for streaming containers)
-| Field | Value |
-|-------|-------|
-| Name | `GAME_HOST` |
-| Value | `YOUR_VPS_IP` |
-
-This is the same IP as the others — the address the streaming container uses to connect to the game server.
+This powers the `/tokenomics` page — it fetches live stats (tokens burned, prizes paid, current allocation) from the tokenomics tool running on your VPS. The page still loads without it, but shows placeholder data instead of live numbers.
 
 ---
 
@@ -184,11 +177,8 @@ cp .env.local.example .env.local
 Open `.env.local` in any text editor (Notepad works) and fill in your VPS IP:
 ```
 GAME_API_URL=http://YOUR_VPS_IP:8080
-NEKO_ROOMS_URL=http://YOUR_VPS_IP:3000
-NEKO_IMAGE=runepvp-client:latest
-NEKO_ADMIN_PASSWORD=your_password_here
-GAME_HOST=YOUR_VPS_IP
-GAME_PORT=43594
+NEXT_PUBLIC_GAME_CLIENT_URL=http://YOUR_VPS_IP
+TOKENOMICS_URL=http://YOUR_VPS_IP:4000
 ```
 
 ### Start the dev server
@@ -212,9 +202,9 @@ Press `Ctrl+C` to stop.
 - The game server isn't running yet, or the `GAME_API_URL` env var is wrong
 - Check: can you open `http://YOUR_VPS_IP:8080/api/leaderboard` in a browser? If not, the game server isn't up
 
-### "Play Now" shows "Streaming service unavailable"
-- neko-rooms isn't running on your VPS yet — follow the streaming section of `DEPLOYMENT.md`
-- Check port 3000 is open in your VPS firewall: `ufw status`
+### "Play Now" page says "Game server not configured"
+- The `NEXT_PUBLIC_GAME_CLIENT_URL` env var is missing in Vercel
+- Add it in Vercel → Settings → Environment Variables, then redeploy
 
 ### The website URL has a random Vercel subdomain, not my domain
 - That's fine — it's fully functional at the Vercel URL
@@ -234,4 +224,4 @@ Press `Ctrl+C` to stop.
 | `/` | Landing page — hero, stats bar (live kills + SOL), feature cards |
 | `/leaderboard` | Live kill rankings (refreshes every 30 seconds) |
 | `/player/:name` | Individual player stats — kills, deaths, K/D, wallet |
-| `/play` | Launches a WebRTC streaming session, embeds the game client |
+| `/play` | "Launch Game" button — opens the 2004Scape browser client in a new tab |

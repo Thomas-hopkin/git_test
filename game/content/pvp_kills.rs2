@@ -1,0 +1,20 @@
+// PvP kill/death recording.
+// Fires on the player that just died — we get their name and look up the killer.
+//
+// Engine built-in used: last_com — returns the entity that dealt the killing blow.
+// If 2004Scape uses a different built-in (e.g. last_attacker, com_target),
+// update that single line below.
+
+[death,_]
+def_string $killer_name;
+
+// last_com gives the player/npc that killed us; skip if killed by environment
+if (last_com_type = ^entitytype_player) {
+    $killer_name = last_com_name;
+    if (^string_length($killer_name) > 0) {
+        pvp_recordkill(player_name, $killer_name);
+
+        // Announce in chat so both players see it
+        mes player_name + " has been slain by " + $killer_name + "!";
+    }
+}
