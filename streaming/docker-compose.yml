@@ -23,3 +23,26 @@ services:
       # Port range allocated to rooms (one port per session)
       NEKO_ROOMS_PORT_FROM: "52000"
       NEKO_ROOMS_PORT_TO: "52100"
+
+  # session-manager: production front-end to neko-rooms. Keeps a warm container
+  # pool, enforces a capacity cap with a fair queue, reaps dead sessions, and
+  # exposes a simple API the website calls. This is what makes browser play
+  # robust instead of a fragile one-container-per-click prototype.
+  session-manager:
+    build: ./session-manager
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    depends_on:
+      - neko-rooms
+    environment:
+      PORT: "5000"
+      # Reached over the internal compose network, so use the service name.
+      NEKO_ROOMS_URL: "http://neko-rooms:3000"
+      NEKO_IMAGE: "runepvp-client:latest"
+      # Game server as seen from inside a container — VPS public IP, not localhost.
+      GAME_HOST: "${GAME_HOST}"
+      GAME_PORT: "${GAME_PORT:-43594}"
+      # Tune these to your VPS size (see session-manager/.env.example).
+      MAX_SESSIONS: "${MAX_SESSIONS:-4}"
+      POOL_SIZE: "${POOL_SIZE:-1}"

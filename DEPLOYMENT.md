@@ -140,6 +140,7 @@ Your VPS blocks all ports by default. Open the ones the game needs:
 ufw allow 22        # SSH (keep this or you'll lock yourself out!)
 ufw allow 43594     # Game client connections
 ufw allow 8080      # Leaderboard API (for the website)
+ufw allow 5000      # Session manager (the website's "Play Now" talks to this)
 ufw allow 3000      # neko-rooms streaming manager
 ufw allow 52000:52100/udp  # WebRTC video streams
 ufw allow 52000:52100/tcp
@@ -174,10 +175,16 @@ nano .env
 Edit the file to look like this (replace the IP):
 ```
 VPS_IP=5.161.xx.xx        # ← your actual VPS IP
-GAME_HOST=127.0.0.1       # game server is on same machine
+GAME_HOST=5.161.xx.xx     # ← SAME IP. Containers can't reach the host via 127.0.0.1.
 GAME_PORT=43594
 NEKO_ADMIN_PASSWORD=choose_a_strong_password
+MAX_SESSIONS=4            # max simultaneous players (tune to your VPS — see below)
+POOL_SIZE=1               # spare containers kept warm for instant launches
 ```
+
+> **`GAME_HOST` must be your VPS public IP, not `127.0.0.1`.** Each streaming session runs inside its own Docker container, and `127.0.0.1` inside a container points at the container itself, not your game server. Using the public IP makes it reach the host.
+
+> **Capacity:** each session needs roughly 1.5 vCPU and 1.5GB RAM. On the recommended 4 vCPU / 8GB box, `MAX_SESSIONS=4` is a safe ceiling. When all slots are full, additional players see a "you're #N in line" queue and start automatically as slots free up — nothing crashes.
 
 Save: Ctrl+X, then Y, then Enter.
 
@@ -190,16 +197,26 @@ docker build -t runepvp-client ./streaming
 
 This builds the container that will run the game client. Takes 2–3 minutes.
 
-### 7d. Start neko-rooms
+### 7d. Start the streaming stack
 
 ```bash
 cd /home/runepvp/streaming
-docker compose up -d
-docker compose logs -f
-# Should show: "neko-rooms started"
+docker compose up -d --build
+docker compose ps
+# Should show both 'neko-rooms' and 'session-manager' as running
 ```
 
-`-d` means "run in background". To check on it later: `docker compose ps`
+`docker compose up -d` starts two services:
+- **neko-rooms** — the WebRTC engine that runs one game container per session
+- **session-manager** — the production layer in front of it: keeps containers pre-warmed, caps concurrent players at `MAX_SESSIONS`, queues overflow, sends a heartbeat-based keepalive, and tears down sessions the moment a player leaves. This is what the website's "Play Now" button actually talks to.
+
+`--build` (re)builds the session-manager image from source. To check on it later: `docker compose ps` and `docker compose logs -f session-manager`.
+
+Verify the session manager is healthy:
+```bash
+curl http://localhost:5000/stats
+# Should return something like: {"active":0,"max":4,"pooled":1,"queued":0}
+```
 
 ---
 
@@ -226,11 +243,10 @@ Still on the configuration page, scroll to **Environment Variables** and add:
 | Name | Value |
 |------|-------|
 | `GAME_API_URL` | `http://YOUR_VPS_IP:8080` |
-| `NEKO_ROOMS_URL` | `http://YOUR_VPS_IP:3000` |
-| `NEKO_IMAGE` | `runepvp-client:latest` |
-| `NEKO_ADMIN_PASSWORD` | the password you set in Step 7b |
+| `SESSION_MANAGER_URL` | `http://YOUR_VPS_IP:5000` |
+| `TOKENOMICS_URL` | `http://YOUR_VPS_IP:4000` |
 
-Replace `YOUR_VPS_IP` with your actual IP.
+Replace `YOUR_VPS_IP` with your actual IP. `SESSION_MANAGER_URL` is what powers "Play Now" — it's the only streaming variable the website needs now, since the session manager handles everything else internally.
 
 5. Click **Deploy**
 
